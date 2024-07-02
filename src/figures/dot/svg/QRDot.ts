@@ -1,4 +1,5 @@
 import dotTypes from "../../../constants/dotTypes";
+import { calculateStarPoints } from "../../../tools/calculateStarPoints";
 import { DotType, GetNeighbor, DrawArgs, BasicFigureDrawArgs, RotateFigureArgs } from "../../../types";
 
 export default class QRDot {
@@ -13,29 +14,18 @@ export default class QRDot {
 
   draw(x: number, y: number, size: number, getNeighbor: GetNeighbor): void {
     const type = this._type;
-    let drawFunction;
+    const drawFunctions = {
+      [dotTypes.star]: this._drawStar,
+      [dotTypes.cross]: this._drawCross,
+      [dotTypes.dots]: this._drawDot,
+      [dotTypes.classy]: this._drawClassy,
+      [dotTypes.classyRounded]: this._drawClassyRounded,
+      [dotTypes.rounded]: this._drawRounded,
+      [dotTypes.extraRounded]: this._drawExtraRounded,
+      [dotTypes.square]: this._drawSquare
+    };
 
-    switch (type) {
-      case dotTypes.dots:
-        drawFunction = this._drawDot;
-        break;
-      case dotTypes.classy:
-        drawFunction = this._drawClassy;
-        break;
-      case dotTypes.classyRounded:
-        drawFunction = this._drawClassyRounded;
-        break;
-      case dotTypes.rounded:
-        drawFunction = this._drawRounded;
-        break;
-      case dotTypes.extraRounded:
-        drawFunction = this._drawExtraRounded;
-        break;
-      case dotTypes.square:
-      default:
-        drawFunction = this._drawSquare;
-    }
-
+    const drawFunction = drawFunctions[type] ?? this._drawSquare;
     drawFunction.call(this, { x, y, size, getNeighbor });
   }
 
@@ -210,6 +200,45 @@ export default class QRDot {
       this._basicSideRounded({ x, y, size, rotation });
       return;
     }
+  }
+
+  _drawStar(args: DrawArgs): void {
+    const { size, x, y } = args;
+
+    const cx = x + size / 2;
+    const cy = y + size / 2;
+    const outerRadius = size / 2;
+    const innerRadius = outerRadius * 0.6;
+    const points = calculateStarPoints(cx, cy, outerRadius, innerRadius, 6);
+
+    const initialPath = `M ${points[0][0]} ${points[0][1]}`;
+    const d = points.reduce((acc, val) => acc.concat(`L ${val[0]} ${val[1]}`), initialPath);
+
+    this._rotateFigure({
+      ...args,
+      draw: () => {
+        this._element = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        this._element.setAttribute("d", d);
+      }
+    });
+  }
+
+  _drawCross(args: DrawArgs): void {
+    const { size, x, y } = args;
+
+    const d =
+      `M ${x} ${y}` + //go to left top position
+      `l ${size} ${size}` + // draw a line from the left upper corner to the bottom right
+      `M ${x + size} ${y}` + // go to upper right corner
+      `L ${x} ${y + size}`; // bottom left
+
+    this._rotateFigure({
+      ...args,
+      draw: () => {
+        this._element = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        this._element.setAttribute("d", d);
+      }
+    });
   }
 
   _drawExtraRounded({ x, y, size, getNeighbor }: DrawArgs): void {

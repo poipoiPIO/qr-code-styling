@@ -5,35 +5,58 @@
         <title>QR Code Styling</title>
     </head>
     <body>
-        <div id="canvas"></div>
-        <div id="canvas2"></div>
+        <div style="display: flex; width: 100%; flex-wrap: wrap-reverse;">
+          <div id="canvas"></div>
+          <div id="canvas2" style="height: 50%; width: 50%;"></div>
+          <div id="canvas3" style="height: 50%; width: 50%;"></div>
+        </div>
+
         <script type="text/javascript">
+          const data = 'https://youtu.be/WoljWyFPNgs?si=uyFV6TsZCHyKOnMH';
             const options = {
-              width: 500,
-              height: 500,
-              data: "h",
-              image: "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg",
+              width: 2000,
+              height: 2000,
+              margin: 200,
               dotsOptions: {
-                type: "extra-rounded",
-                gradient: {
-                  type: "linear", //radial,
-                  rotation: Math.PI/2,
-                  colorStops: [{ offset: 0, color: 'blue' }, { offset: 0.5, color: 'red' }, { offset: 1, color: 'green' }]
-                },
+                type: "cross",
               },
-              cornersSquareOptions: {
-                type: "rounded",
-                gradient: {
-                  type: "linear",
-                  rotation: Math.PI * 0.2,
-                  colorStops: [{
-                    offset: 0,
-                    color: 'blue'
-                  }, {
-                    offset: 1,
-                    color: 'red'
-                  }]
-                },
+              cornersDotOptions: {
+                type: 'square'
+              },
+              data,
+              imageOptions: {
+                crossOrigin: "anonymous",
+                margin: 30
+              }
+            };
+
+            const options3 = {
+              width: 2000,
+              height: 2000,
+              margin: 200,
+              data,
+              dotsOptions: {
+                type: "star",
+              },
+              cornersDotOptions: {
+                type: 'square'
+              },
+              imageOptions: {
+                crossOrigin: "anonymous",
+                margin: 30
+              }
+            };
+
+            const options2 = {
+              width: 2000,
+              height: 2000,
+              margin: 200,
+              data,
+              dotsOptions: {
+                type: "dot",
+              },
+              cornersDotOptions: {
+                type: 'square'
               },
               imageOptions: {
                 crossOrigin: "anonymous",
@@ -41,13 +64,15 @@
               }
             };
           const qrCode = new QRCodeStyling(options);
+          const qrCode3 = new QRCodeStyling(options2);
           const qrCode2 = new QRCodeStyling({
-            ...options,
+            ...options3,
             type: 'svg',
           });
 
             qrCode.append(document.getElementById("canvas"));
             qrCode2.append(document.getElementById("canvas2"));
+            qrCode3.append(document.getElementById("canvas3"));
 
             // qrCode2.download()
         </script>

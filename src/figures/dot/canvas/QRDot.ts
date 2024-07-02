@@ -1,4 +1,5 @@
 import dotTypes from "../../../constants/dotTypes";
+import { calculateStarPoints } from "../../../tools/calculateStarPoints";
 import {
   DotType,
   GetNeighbor,
@@ -19,29 +20,18 @@ export default class QRDot {
   draw(x: number, y: number, size: number, getNeighbor: GetNeighbor): void {
     const context = this._context;
     const type = this._type;
-    let drawFunction;
+    const drawFunctions: Record<string, (args: DrawArgsCanvas) => void> = {
+      [dotTypes.star]: this._drawStar,
+      [dotTypes.cross]: this._drawCross,
+      [dotTypes.dots]: this._drawDot,
+      [dotTypes.classy]: this._drawClassy,
+      [dotTypes.classyRounded]: this._drawClassyRounded,
+      [dotTypes.rounded]: this._drawRounded,
+      [dotTypes.extraRounded]: this._drawExtraRounded,
+      [dotTypes.square]: this._drawSquare
+    };
 
-    switch (type) {
-      case dotTypes.dots:
-        drawFunction = this._drawDot;
-        break;
-      case dotTypes.classy:
-        drawFunction = this._drawClassy;
-        break;
-      case dotTypes.classyRounded:
-        drawFunction = this._drawClassyRounded;
-        break;
-      case dotTypes.rounded:
-        drawFunction = this._drawRounded;
-        break;
-      case dotTypes.extraRounded:
-        drawFunction = this._drawExtraRounded;
-        break;
-      case dotTypes.square:
-      default:
-        drawFunction = this._drawSquare;
-    }
-
+    const drawFunction = drawFunctions[type] ?? this._drawSquare;
     drawFunction.call(this, { x, y, size, context, getNeighbor });
   }
 
@@ -123,7 +113,6 @@ export default class QRDot {
       }
     });
   }
-
   _basicCornersRounded(args: BasicFigureDrawArgsCanvas): void {
     const { size, context } = args;
 
@@ -154,6 +143,57 @@ export default class QRDot {
 
   _drawDot({ x, y, size, context }: DrawArgsCanvas): void {
     this._basicDot({ x, y, size, context, rotation: 0 });
+  }
+
+  _drawCross(args: DrawArgsCanvas): void {
+    const { size, context } = args;
+
+    const x = 0 - size / 2 - 5;
+    const y = x;
+
+    const sizeCap = size / 2 - 5;
+
+    this._rotateFigure({
+      ...args,
+      rotation: 0,
+      draw: () => {
+        const oldLineWidth = context.lineWidth;
+        context.lineWidth = 24;
+
+        context.beginPath();
+        context.moveTo(x, y);
+        context.lineTo(sizeCap, sizeCap);
+        context.moveTo(x, sizeCap);
+        context.lineTo(sizeCap, y);
+        context.stroke();
+
+        context.lineWidth = oldLineWidth;
+      }
+    });
+  }
+
+  _drawStar(args: DrawArgsCanvas): void {
+    const { size, context } = args;
+
+    const x = -size;
+    const y = -size;
+    const cx = x + size;
+    const cy = y + size;
+    const outerRadius = size / 2;
+    const innerRadius = outerRadius * 0.6;
+    const points = calculateStarPoints(cx, cy, outerRadius, innerRadius, 5);
+    const [x0, y0] = points[0];
+
+    this._rotateFigure({
+      ...args,
+      rotation: 0,
+      draw: () => {
+        context.moveTo(x0, y0);
+        points.forEach(([x, y]) => {
+          context.lineTo(x, y);
+        });
+      }
+    });
   }
 
   _drawSquare({ x, y, size, context }: DrawArgsCanvas): void {
